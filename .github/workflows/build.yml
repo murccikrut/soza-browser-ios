@@ -1,7 +1,6 @@
 name: Build Soza iOS
 
 on:
-  push:
   workflow_dispatch:
 
 jobs:
@@ -12,21 +11,25 @@ jobs:
       - name: Download project
         uses: actions/checkout@v5
 
-      - name: Show Xcode version
-        run: xcodebuild -version
-
-      - name: Show project schemes
-        run: |
-          xcodebuild \
-            -project SozaBrowser.xcodeproj \
-            -list
-
       - name: Build Soza
         run: |
           xcodebuild \
             -project SozaBrowser.xcodeproj \
             -scheme SozaBrowser \
-            -sdk iphonesimulator \
-            -configuration Debug \
+            -sdk iphoneos \
+            -configuration Release \
+            -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+      - name: Make IPA
+        run: |
+          mkdir Payload
+          cp -R build/Build/Products/Release-iphoneos/SozaBrowser.app Payload/
+          zip -r SozaBrowser.ipa Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: SozaBrowser-iOS
+          path: SozaBrowser.ipa
